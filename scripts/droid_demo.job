@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=demo
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=03:00:00
+#SBATCH --output=slurm_output_%A_%x.out
+#SBATCH --error=slurm_output_%A_%x.out
+
+module purge
+module load 2022
+module load CUDA/11.7.0
+
+source activate droidenv
+
+cd $HOME/droid-epipolar/src
+
+# download droid.pth
+# download data/
+
+DATA_ROOT=""    
+#WEIGHTS=$DATA_ROOT/epipolar_data/ckpts/droidslam/droid.pth
+
+CKPTS=(exp0_030000 expB1_030000 expB2_030000 expB3_030000 expB4_030000 expB5_030000 expB6_030000)
+
+for CKPT in ${CKPTS[@]}; do
+    # option 1 - eth
+    python demo.py --imagedir=data/sfm_bench/rgb --calib=calib/eth.txt --reconstruction_path=$CKPT/eth --disable_vis --weights=checkpoints/$CKPT.pth
+
+    # option 2 - tartanair/seasidetown
+    IMAGEDIR=$DATA_ROOT/epipolar_data/datasets/tartanair_eval/seasidetown/seasidetown/Easy/P000/image_right
+    python demo.py --imagedir=$IMAGEDIR --calib=calib/tartan.txt --stride=2 --reconstruction_path=$CKPT/tartanair_seasidetown --disable_vis --weights=checkpoints/$CKPT.pth
+done

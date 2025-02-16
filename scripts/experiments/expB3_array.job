@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=expB3a
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=20:00:00
+#SBATCH --output=slurm_output_%A_%x-%a.out
+#SBATCH --error=slurm_output_%A_%x-%a.out
+
+module purge
+module load 2022
+module load CUDA/11.7.0
+
+source activate droidenv
+
+cd $HOME/droid-epipolar/src
+
+DATA_ROOT=""
+DATAPATH=$DATA_ROOT/epipolar_data/datasets/TartanAir
+WANDBKEY=""
+WANDBUSR=""
+
+# choose PARAM based on $SLURM_ARRAY_TASK_ID
+# 1:0.1, 2:0.31, 3:1, 4:3.1, 5:10, 6:31, 7:100, 8:310
+case $SLURM_ARRAY_TASK_ID in
+    1)
+        PARAM=0.1
+        ;;
+    2)
+        PARAM=0.31
+        ;;
+    3)
+        PARAM=1
+        ;;
+    4)
+        PARAM=3.1
+        ;;
+    5)
+        PARAM=10
+        ;;
+    6)
+        PARAM=31
+        ;;
+    7)
+        PARAM=100
+        ;;
+    8)
+        PARAM=310
+        ;;
+    9)
+        PARAM=1000
+        ;;
+esac
+
+EXPNAME=expB3a-$SLURM_ARRAY_TASK_ID
+python train.py --name=$EXPNAME --datapath=$DATAPATH --gpus=1 --lr=0.00025 --steps=30002 \
+    --wandb --wandb_entity=$WANDBUSR --wandb_key=$WANDBKEY --wandb_project=droidslam_epipolar \
+    --res-loss-ec --ec-sigma=$PARAM

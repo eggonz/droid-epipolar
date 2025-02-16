@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=eval
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=03:00:00
+#SBATCH --output=slurm_output_%A_%x.out
+#SBATCH --error=slurm_output_%A_%x.out
+
+module purge
+module load 2022
+module load CUDA/11.7.0
+
+source activate droidenv
+
+cd $HOME/droid-epipolar/src
+
+#TARTANAIR_PATH=datasets/TartanAir
+#WEIGHTS=droid.pth
+
+DATA_ROOT=""
+TARTANAIR_PATH=$DATA_ROOT/epipolar_data/datasets/tartanair_eval
+WEIGHTS=checkpoints/exp0_030000.pth
+
+CKPTS=(exp0_030000 expB1_030000 expB2_030000 expB3_030000 expB4_030000 expB5_030000 expB6_030000)
+
+for CKPT in ${CKPTS[@]}; do
+    echo "Evaluating $CKPT"
+    python evaluation_scripts/validate_tartanair.py --datapath=$TARTANAIR_PATH --weights=checkpoints/$CKPT.pth --disable_vis --plot_curve
+done

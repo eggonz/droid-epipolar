@@ -1,0 +1,3 @@
+[submodule "3rdparty/tartanair_tools"]
+	path = 3rdparty/tartanair_tools
+	url = https://github.com/castacks/tartanair_tools.git

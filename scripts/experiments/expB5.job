@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=expB5
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=18
+#SBATCH --time=20:00:00
+#SBATCH --output=slurm_output_%A_%x.out
+#SBATCH --error=slurm_output_%A_%x.out
+
+module purge
+module load 2022
+module load CUDA/11.7.0
+
+source activate droidenv
+
+cd $HOME/droid-epipolar/src
+
+DATA_ROOT=""
+DATAPATH=$DATA_ROOT/epipolar_data/datasets/TartanAir
+WANDBKEY=""
+WANDBUSR=""
+
+EXPNAME=expB5
+python train.py --name=$EXPNAME --datapath=$DATAPATH --gpus=1 --lr=0.00025 --steps=30002 \
+    --wandb --wandb_entity=$WANDBUSR --wandb_key=$WANDBKEY --wandb_project=droidslam_epipolar \
+    --ba-update-ec
